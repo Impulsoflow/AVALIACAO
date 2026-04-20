@@ -131,45 +131,6 @@
 
         .instructions p:last-child { margin-bottom: 0; }
 
-        .timer-bar {
-            background: linear-gradient(135deg, rgba(200,168,78,.12), rgba(56,189,248,.08));
-            border: 2px solid var(--accent-gold);
-            border-radius: 14px;
-            padding: 16px 24px;
-            text-align: center;
-            margin-bottom: 18px;
-        }
-
-        .timer-label {
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-family: Arial, sans-serif;
-        }
-
-        .timer-display {
-            font-size: 36px;
-            font-weight: 900;
-            color: #063b7a;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 3px;
-            margin: 4px 0;
-        }
-
-        .timer-display.warning { color: var(--yellow); }
-        .timer-display.danger { color: var(--red); animation: pulse-red 1s infinite; }
-        .timer-display.expired { color: #94a3b8; }
-
-        @keyframes pulse-red {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .timer-status { font-size: 12px; color: var(--muted); font-weight: 600; }
-        .timer-status.active { color: var(--green); }
-        .timer-status.closed { color: var(--red); }
 
         .form-grid {
             display: grid;
@@ -276,7 +237,18 @@
         .project-item .pi-info { flex: 1; }
         .project-item .pi-company { font-size: 11px; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-family: Arial, sans-serif; }
         .project-item .pi-name { font-size: 15px; font-weight: 700; color: #063b7a; margin-top: 2px; }
-        .project-item .pi-leader { font-size: 12px; color: var(--muted); }
+        .project-item .pi-group { font-size: 12px; color: #0b2a52; font-weight: 800; margin-top: 4px; letter-spacing: .02em; }
+        .project-item .pi-leader { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+        .project-item.blocked { opacity: .48; cursor: not-allowed; border-style: dashed; }
+        .project-item.evaluated { border-color: rgba(0,166,90,.75); background: linear-gradient(135deg, #ecfdf5, #d1fae5); box-shadow: 0 8px 20px rgba(0,166,90,.10); }
+        .project-item.evaluated .pi-radio { border-color: var(--green); background: var(--green); }
+        .project-item.evaluated .pi-radio::after { content: '✓'; color: white; font-size: 14px; font-weight: 900; }
+        .project-item.evaluated .pi-group { color: var(--green); }
+        .project-item.blocked:hover { transform: none; box-shadow: none; border-color: rgba(207,230,255,.70); }
+        #scoring-company { font-size: 13px; color: #64748b; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+        #scoring-group { display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 999px; background: linear-gradient(135deg, #e0f2fe, #eff6ff); border: 1px solid rgba(11,99,206,.18); color: #0b2a52; font-size: 15px; font-weight: 900; margin-top: 8px; }
+        #scoring-project { font-size: 22px; font-weight: 900; color: #063b7a; margin-top: 8px; line-height: 1.2; }
+        #scoring-leader { font-size: 14px; color: #334155; font-weight: 700; margin-top: 6px; }
 
         .score-criteria {
             display: grid;
@@ -595,17 +567,10 @@
                 <p class="header-desc">Avalie os projetos de melhoria apresentados no Workshop. Sua nota é importante para reconhecer os melhores trabalhos!</p>
             </div>
 
-            <!-- TIMER -->
-            <div class="timer-bar" id="timer-bar">
-                <div class="timer-label">⏱️ Tempo Restante para Avaliação</div>
-                <div class="timer-display" id="timer-display">02:00:00</div>
-                <div class="timer-status active" id="timer-status">🟢 Avaliação aberta — envie sua nota!</div>
-            </div>
-
             <!-- STEP 1: IDENTIFICAÇÃO -->
             <section id="step-identify" class="step active">
                 <div class="instructions">
-                    <p><strong style="font-family:Arial,sans-serif;color:var(--primary);">📋 Como funciona:</strong> Primeiro, identifique-se e informe os dados da apresentação. Depois, selecione o projeto e dê suas notas de <strong>0 a 10</strong> em cada critério. Você tem até <strong>2 horas</strong> após o início da avaliação para enviar.</p>
+                    <p><strong style="font-family:Arial,sans-serif;color:var(--primary);">📋 Como funciona:</strong> Primeiro, identifique-se e informe os dados da apresentação. Depois, selecione o projeto e dê suas notas de <strong>0 a 10</strong> em cada critério.</p>
                     <p style="color:var(--primary);"><strong style="font-family:Arial,sans-serif;">⚠️ Importante:</strong> Cada avaliador pode votar <strong>apenas uma vez por projeto</strong>. Seja justo e criterioso!</p>
                 </div>
 
@@ -660,6 +625,7 @@
                     <div style="text-align:center;margin-bottom:16px;">
                         <div style="font-size:11px;color:var(--primary);font-weight:800;text-transform:uppercase;letter-spacing:2px;font-family:Arial,sans-serif;">Avaliando</div>
                         <div id="scoring-company" style="font-size:12px;color:var(--muted);font-weight:700;"></div>
+                        <div id="scoring-group" style="font-size:12px;color:var(--primary);font-weight:800;margin-top:4px;"></div>
                         <div id="scoring-project" style="font-size:20px;font-weight:900;color:#063b7a;margin-top:4px;"></div>
                         <div id="scoring-leader" style="font-size:13px;color:var(--muted);"></div>
                     </div>
@@ -772,85 +738,45 @@
         // ═══ CONFIG ═══
         var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzkawRP818sy8rBqOO67z15CvWdZvdRJNXzFQv16ClG7KiMeA2-GxWT8K78GPV75GWP/exec";           
         var API_KEY = "2026Impulso$";
-        var VOTE_WINDOW_HOURS = 2;
 
         var selectedProject = null;
         var evaluatorData = {};
-        var sessionStartTime = null;
-        var timerInterval = null;
         var rankingInterval = null;
         var voteSent = false;
 
         window._projectsList = [];
+        window._evaluatedGroups = JSON.parse(localStorage.getItem('impulsoEvaluatedGroups') || '[]');
 
-        // ═══════════════════════════════════════
-        //  TIMER — Contagem regressiva de 2h
-        // ═══════════════════════════════════════
-        function initTimer() {
-            var saved = localStorage.getItem('evalSessionStart');
-            if (saved) {
-                sessionStartTime = new Date(saved);
-            } else {
-                sessionStartTime = new Date();
-                localStorage.setItem('evalSessionStart', sessionStartTime.toISOString());
-            }
-            updateTimer();
-            timerInterval = setInterval(updateTimer, 1000);
+        function normalizeGroupKey(value) {
+            return (value || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
         }
 
-        function updateTimer() {
-            var now = new Date();
-            var elapsed = now - sessionStartTime;
-            var limit = VOTE_WINDOW_HOURS * 60 * 60 * 1000;
-            var remaining = Math.max(0, limit - elapsed);
+        function isGroupBlocked(group) {
+            var key = normalizeGroupKey(group);
+            return !!key && window._evaluatedGroups.indexOf(key) !== -1;
+        }
 
-            var h = Math.floor(remaining / 3600000);
-            var m = Math.floor((remaining % 3600000) / 60000);
-            var s = Math.floor((remaining % 60000) / 1000);
-
-            var display = document.getElementById('timer-display');
-            var status = document.getElementById('timer-status');
-
-            var hh = h < 10 ? '0' + h : '' + h;
-            var mm = m < 10 ? '0' + m : '' + m;
-            var ss = s < 10 ? '0' + s : '' + s;
-            display.textContent = hh + ':' + mm + ':' + ss;
-
-            if (remaining <= 0) {
-                display.className = 'timer-display expired';
-                display.textContent = '00:00:00';
-                status.className = 'timer-status closed';
-                status.textContent = '🔴 Tempo esgotado — avaliação encerrada';
-                clearInterval(timerInterval);
-                disableVoting();
-            } else if (remaining < 600000) {
-                display.className = 'timer-display danger';
-                status.className = 'timer-status closed';
-                status.textContent = '⚠️ Menos de 10 minutos!';
-            } else if (remaining < 1800000) {
-                display.className = 'timer-display warning';
-                status.className = 'timer-status active';
-                status.textContent = '🟡 Menos de 30 minutos — envie logo!';
-            } else {
-                display.className = 'timer-display';
-                status.className = 'timer-status active';
-                status.textContent = '🟢 Avaliação aberta — envie sua nota!';
+        function markGroupEvaluated(group) {
+            var key = normalizeGroupKey(group);
+            if (key && window._evaluatedGroups.indexOf(key) === -1) {
+                window._evaluatedGroups.push(key);
+                localStorage.setItem('impulsoEvaluatedGroups', JSON.stringify(window._evaluatedGroups));
             }
         }
 
-        function isTimeExpired() {
-            if (!sessionStartTime) return true;
-            var elapsed = new Date() - sessionStartTime;
-            return elapsed >= VOTE_WINDOW_HOURS * 60 * 60 * 1000;
+        function formatGroupLabel(group) {
+            return '👥 Grupo: ' + (group || 'N/D');
         }
 
-        function disableVoting() {
-            var btn = document.getElementById('btn-send-vote');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '⏱️ Tempo Esgotado';
-            }
-        }
+        window._defaultProjects = [
+            { company: 'Festpan Alimentos', group: 'Grupo FocoFest', leader: 'Luiz', name: 'DE IMPLANTAÇÃO DE PCP 2.0' },
+            { company: 'Festpan Alimentos', group: 'Grupo Mentalize', leader: 'Ismael', name: 'Assertividade na contratação' },
+            { company: 'Festpan Alimentos', group: 'Grupo Evolução', leader: 'José Aldo', name: 'PEPS' },
+            { company: 'Festpan Alimentos', group: 'Grupo Diretriz & Eficiëncia', leader: 'Rosangela', name: 'Venda A vista com recebiemnto no ato da entrega' },
+            { company: 'Festpan Alimentos', group: 'Grupo Águia', leader: 'Douglas', name: 'Melhoria Setor Compras' },
+            { company: 'Festpan Alimentos', group: 'Grupo Sempre', leader: 'Felipe', name: 'Implantacao do RAS (Reuniao de Alinhamto e Solucao)' }
+        ];
+
 
         // ═══════════════════════════════════════
         //  NAVEGAÇÃO ENTRE STEPS
@@ -898,7 +824,8 @@
                 company: company,
                 date: date,
                 name: name,
-                role: role
+                role: role,
+                group: ''
             };
 
             loadProjects();
@@ -910,14 +837,15 @@
                 showToast('Selecione um projeto!', '#f5a623');
                 return;
             }
-            if (isTimeExpired()) {
-                showToast('⏱️ Tempo esgotado!', '#dc2626');
-                return;
-            }
-
+            evaluatorData.group = selectedProject.group || evaluatorData.group || '';
             document.getElementById('scoring-company').textContent = '🏢 ' + selectedProject.company;
+            document.getElementById('scoring-group').textContent = '👥 Grupo: ' + (evaluatorData.group || '');
             document.getElementById('scoring-project').textContent = selectedProject.name;
             document.getElementById('scoring-leader').textContent = '👤 Líder: ' + selectedProject.leader;
+
+            var sendBtn = document.getElementById('btn-send-vote');
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '✅ Enviar Avaliação';
 
             for (var i = 1; i <= 5; i++) {
                 document.getElementById('slider-' + i).value = 5;
@@ -934,12 +862,14 @@
                 items[i].classList.remove('selected');
             }
             document.getElementById('btn-go-score').disabled = true;
+            var sendBtn = document.getElementById('btn-send-vote');
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '✅ Enviar Avaliação';
             voteSent = false;
             goToStep('step-projects');
         }
 
         function resetAll() {
-            localStorage.removeItem('evalSessionStart');
             location.reload();
         }
 
@@ -964,7 +894,7 @@
                     if (data.ok && data.projects && data.projects.length > 0) {
                         renderProjects(data.projects);
                     } else {
-                        renderManualInput();
+                        renderProjects(window._defaultProjects);
                     }
                 })
                 .catch(function(err) {
@@ -980,11 +910,15 @@
 
             for (var i = 0; i < projects.length; i++) {
                 var p = projects[i];
-                html += '<div class="project-item" onclick="selectProject(' + i + ')" data-index="' + i + '">'
+                var evaluated = isGroupBlocked(p.group);
+                var stateClass = evaluated ? ' blocked evaluated' : '';
+                var clickAction = evaluated ? '' : 'if(!this.classList.contains(\'blocked\')) selectProject(' + i + ')';
+                html += '<div class="project-item' + stateClass + '" onclick="' + clickAction + '" data-index="' + i + '">'
                     + '<div class="pi-radio"></div>'
                     + '<div class="pi-info">'
                     + '<div class="pi-company">🏢 ' + (p.company || 'Empresa') + '</div>'
                     + '<div class="pi-name">' + p.name + '</div>'
+                    + '<div class="pi-group">' + (evaluated ? '✅ ' : '') + formatGroupLabel(p.group) + '</div>'
                     + '<div class="pi-leader">👤 Líder: ' + p.leader + '</div>'
                     + '</div></div>';
             }
@@ -1096,10 +1030,6 @@
                 showToast('Você já votou neste projeto!', '#f5a623');
                 return;
             }
-            if (isTimeExpired()) {
-                showToast('⏱️ Tempo esgotado!', '#dc2626');
-                return;
-            }
             if (!selectedProject) {
                 showToast('Nenhum projeto selecionado!', '#dc2626');
                 return;
@@ -1125,6 +1055,7 @@
                     evaluatorName: evaluatorData.name,
                     evaluatorRole: evaluatorData.role,
                     projectName: selectedProject.name,
+                    projectGroup: selectedProject.group || '',
                     projectLeader: selectedProject.leader,
                     projectCompany: selectedProject.company || evaluatorData.company,
                     score_clarity: scores.criteria_1,
@@ -1133,7 +1064,6 @@
                     score_presentation: scores.criteria_4,
                     score_potential: scores.criteria_5,
                     averageScore: avg,
-                    sessionStart: sessionStartTime ? sessionStartTime.toISOString() : '',
                     votedAt: new Date().toISOString()
                 }
             };
@@ -1151,18 +1081,38 @@
 
                 if (result.ok) {
                     voteSent = true;
+                    var evaluatedProject = selectedProject;
+                    markGroupEvaluated(evaluatedProject.group || evaluatedProject.name);
+                    if (window._projectsList && window._projectsList.length) {
+                        renderProjects(window._projectsList);
+                    }
                     showToast('✅ Avaliação enviada com sucesso!', '#00a65a');
                     launchConfetti();
 
                     document.getElementById('confirm-msg').textContent =
-                        'Você avaliou "' + selectedProject.name + '" com nota ' + avg + '. Obrigado, ' + evaluatorData.name + '!';
+                        'Você avaliou "' + evaluatedProject.name + '" com nota ' + avg + '. Obrigado, ' + evaluatorData.name + '!';
 
                     goToStep('step-results');
                     loadRanking();
 
                     if (rankingInterval) clearInterval(rankingInterval);
                     rankingInterval = setInterval(loadRanking, 15000);
-                } else {
+
+                    setTimeout(function() {
+                        selectedProject = null;
+                        voteSent = false;
+                        var items = document.querySelectorAll('.project-item');
+                        for (var i = 0; i < items.length; i++) {
+                            items[i].classList.remove('selected');
+                        }
+                        document.getElementById('btn-go-score').disabled = true;
+                        var sendBtn = document.getElementById('btn-send-vote');
+                        sendBtn.disabled = false;
+                        sendBtn.innerHTML = '✅ Enviar Avaliação';
+                        loadProjects();
+                        goToStep('step-projects');
+                    }, 1400);
+                } else { 
                     throw new Error(result.message || 'Erro ao enviar');
                 }
             })
@@ -1302,8 +1252,6 @@
             if (mm < 10) mm = '0' + mm;
             if (dd < 10) dd = '0' + dd;
             document.getElementById('av-date').value = yyyy + '-' + mm + '-' + dd;
-
-            initTimer();
         });
     </script>
 </body>
